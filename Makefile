@@ -1,8 +1,8 @@
 # The binary to build (just the basename).
-MODULE := blueprint
+MODULE := polar_spider
 
 # Where to push the docker image.
-REGISTRY ?= docker.pkg.github.com/martinheinz/python-project-blueprint
+REGISTRY ?= docker.pkg.github.com/zszymon/ba_v2
 
 IMAGE := $(REGISTRY)/$(MODULE)
 

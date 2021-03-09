@@ -1,6 +1,6 @@
 name: Build, Test, Lint
 
-on: [push]
+on: []
 
 jobs:
   build:
