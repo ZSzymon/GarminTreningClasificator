@@ -8,11 +8,15 @@ __pycache__/
 tmp/
 # Distribution / packaging
 .Python
+tests/
 env/
 build/
 develop-eggs/
 dist/
 downloads/
+downloads_path/
+resources/*
+polar_spider/resources/
 eggs/
 .eggs/
 lib/

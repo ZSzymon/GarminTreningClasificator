@@ -1,13 +1,13 @@
+import os
 import logging
+from datetime import datetime
+from pathlib import Path
+
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium import webdriver
-
-from pathlib import Path
-
-from datetime import datetime
 
 
 class Polar_Cursor:
@@ -16,23 +16,25 @@ class Polar_Cursor:
         currentTime = now.strftime("%H:%M:%S")
         return currentTime
 
-
-
     def __init__(self):
         BASE_DIR = Path(__file__).resolve().parent
-        DOWNLOAD_PATH = Path.joinpath(BASE_DIR, 'downloads')
-        logging.basicConfig(filename='/home/zywko/PycharmProjects/ba_v2/polar_spider/download.log',
+        DOWNLOAD_PATH = Path.joinpath(BASE_DIR, 'downloads_path/')
+        LOG_PATH = Path.joinpath(BASE_DIR, 'downloads.log')
+        if not os.path.isfile(LOG_PATH):
+            with open(LOG_PATH, mode='a'):
+                pass
+        logging.basicConfig(filename=LOG_PATH,
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
                             level=logging.DEBUG)
         opt = Options()
-        opt.add_argument(f"download.default_directory={DOWNLOAD_PATH}")
+        opt.add_argument("download.default_directory=downloads_path")
         opt.add_experimental_option("debuggerAddress", "localhost:9222")
         self.driver = webdriver.Chrome(options=opt)
         self.driver.get("https://flow.polar.com/training/analysis/4999176666")
 
-        #logging.basicConfig()
+        # logging.basicConfig()
 
     def __findAndClick__(self, buttonVal, maxTime=5, error_message='', by=By.ID):
         try:
@@ -41,12 +43,13 @@ class Polar_Cursor:
             )
             webdriver.ActionChains(self.driver).move_to_element(button).click(button).perform()
         except:
-            error = self.get_currentTime() + " Error: "+str(error_message)
+            error = " Error: " + str(error_message)
             logging.error(error)
             print(error)
         finally:
-            #logging.info()
+            # logging.info()
             pass
+
     def prev(self):
         left_arrow = self.driver.find_element_by_xpath('/html/body/div[4]/div[1]/div/div[1]/div/ul/li[1]')
         prev_button = left_arrow.find_element_by_tag_name('a')
@@ -58,10 +61,9 @@ class Polar_Cursor:
             ('/html/body/div[4]/div[1]/div/div[1]/div/ul/li[2]/a')
         return next_button
 
-
     def clickExportButton(self):
         self.__findAndClick__('exportTrainingSessionPopup',
-                            error_message='Not found export button.', maxTime=10)
+                              error_message='Not found export button.', maxTime=10)
 
     def downloadCSV(self):
         self.__findAndClick__('exportTrainingSessionRRAsCsvFile', error_message='CSV not downloaded')
@@ -100,22 +102,22 @@ class Polar_Cursor:
             webdriver.ActionChains(self.driver).move_to_element(gpx_button).click(gpx_button).perform()
         except:
             succes = False
-        finally:
-            return succes
+
+        return succes
 
     def loop(self):
         while True:
             self.clickExportButton()
             self.__findAndClick__("//*[contains(text(), 'Session (TCX)')]",
-                                2, 'not downloaded TCV', By.XPATH)
+                                  2, 'not downloaded TCV', By.XPATH)
             self.__findAndClick__("//*[contains(text(), 'Session (CSV)')]",
-                                2, 'not downloaded CSV', By.XPATH)
+                                  2, 'not downloaded CSV', By.XPATH)
 
             self.__findAndClick__("//*[contains(text(), 'HRV data (CSV)')]",
-                                2, 'not downloaded HRV in CSV', By.XPATH)
+                                  2, 'not downloaded HRV in CSV', By.XPATH)
 
             self.__findAndClick__("//*[contains(text(), 'Route (GPX)')]",
-                                2, 'not downloaded GPX ', By.XPATH)
+                                  2, 'not downloaded GPX ', By.XPATH)
             self.prev()
 
 
