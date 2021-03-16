@@ -23,7 +23,7 @@ class Garmin_Cursor:
         if not os.path.isdir(DOWNLOAD_PATH):
             print("NOT EXIST DOWNLOAD PATH")
 
-        LOG_PATH = Path.joinpath(BASE_DIR, 'downloads.log')
+        LOG_PATH = Path.joinpath(BASE_DIR, '../downloads.log')
         if not os.path.isfile(LOG_PATH):
             with open(LOG_PATH, mode='a'): pass
 

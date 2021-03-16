@@ -17,7 +17,7 @@ def moveFiles():
     still trying to go deeper :/
     :return:
     """
-    path = "/home/zywko/PycharmProjects/BA_Code/resources/polar_data"
+    path = "/resources/polar_data"
     for dirname, dirs, files in walklevel(path, level=1):
         for file in files:
             oldFileName = file

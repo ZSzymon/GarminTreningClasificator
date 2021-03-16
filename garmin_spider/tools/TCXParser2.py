@@ -89,7 +89,7 @@ class TCXParser:
 
     @property
     def cadence_avg(self):
-        return self.activity.Lap[-1].Cadence
+        return self.activity.Lap[-1].Track.Extensions.AvgRunCadence
 
     @property
     def distance(self):
