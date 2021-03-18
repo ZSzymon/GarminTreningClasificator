@@ -3,6 +3,7 @@ from datetime import datetime
 import logging
 import os
 import re
+from os import path
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,11 +18,14 @@ class Garmin_Cursor:
         currentTime = now.strftime("%H:%M:%S")
         return currentTime
 
-    def __init__(self):
+    def _init___(self,starting_page):
         BASE_DIR = Path(__file__).resolve().parent
         DOWNLOAD_PATH = '/home/zywko/PycharmProjects/BA_Code/garmin_spider/downloads'
         if not os.path.isdir(DOWNLOAD_PATH):
             print("NOT EXIST DOWNLOAD PATH")
+            os.system(f'mkdir -p {DOWNLOAD_PATH}')
+
+
 
         LOG_PATH = Path.joinpath(BASE_DIR, '../downloads.log')
         if not os.path.isfile(LOG_PATH):
@@ -37,8 +41,11 @@ class Garmin_Cursor:
         opt.add_argument(arg)
         opt.add_experimental_option("debuggerAddress", "localhost:9222")
         self.driver = webdriver.Chrome(options=opt)
-        self.driver.get("https://connect.garmin.com/modern/activity/5398019870")
+        self.driver.get(starting_page)
+        csvs = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs'
 
+        self.downloaded_files = [file for file in os.listdir(csvs) if path.isfile(path.join(csvs, file))]
+        self.downloaded_files = set(self.downloaded_files)
         # logging.basicConfig()
 
     def __findAndClick__(self, buttonVal, maxTime=5, error_message='', by=By.ID):
@@ -156,7 +163,7 @@ class Garmin_Cursor:
             return True
         return False
 
-    def isDistanceLonger(self, minDinstance=5):
+    def isDistanceLonger(self, minDinstance=1):
         element = self.__getButton__(
             buttonVal="#react-activitySmallStats > div > div > div:nth-child(1) > div > div",
             by=By.CSS_SELECTOR,
@@ -174,7 +181,7 @@ class Garmin_Cursor:
             error_message='No found Title of activity')
         return "Running" in element.text
 
-    def isPaceInRange(self, min=180, max=330):
+    def isPaceInRange(self, min=120, max=330):
         element = self.__getButton__(
             buttonVal='//*[@id="react-activitySmallStats"]/div/div/div[3]/div/div',
             by=By.XPATH,
@@ -183,6 +190,15 @@ class Garmin_Cursor:
         minutes, sec = re.findall(r'\d+', element.text)
         time = (int(minutes) * 60) + int(sec)
         return time in range(min, max + 1)
+
+    def get_activity_name_csv(self,url):
+        last_slash = str(url).rfind('/')
+        activity_name = url[last_slash + 1:]
+        return 'activity_'.join(activity_name).join('.csv')
+
+    def is_downloaded_already(self,file):
+        activity_name = self.get_activity_name_csv(file)
+        return activity_name in self.downloaded_files
 
     def waitUntilPageRefreshed(self):
         maxtime = 10
@@ -203,8 +219,12 @@ class Garmin_Cursor:
         try:
             while True:
                 self.waitUntilPageRefreshed()
-                if all(cond() for cond in conditions):
+                file = self.driver.current_url
+
+                if all(cond() for cond in conditions) and not self.is_downloaded_already(file):
                     self.download_all()
+                    self.downloaded_files.add(self.get_activity_name_csv(file))
+
                 self.openPrevSite()
 
         except KeyboardInterrupt:
@@ -214,6 +234,7 @@ class Garmin_Cursor:
 
 
 if __name__ == '__main__':
-    cursor = Garmin_Cursor()
+    starting_page = 'https://connect.garmin.com/modern/activity/5220995547'
+    cursor = Garmin_Cursor(starting_page)
     cursor.loop()
     pass

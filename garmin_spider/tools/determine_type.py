@@ -20,7 +20,7 @@ def determine_type(df : pd.DataFrame):
 
 
 if __name__ == '__main__':
-    summary_path = '/resources/summary_garmin3.csv'
+    summary_path = '/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_no_label.csv'
     df = pd.read_csv(summary_path)
     determine_type(df)
     stop = 1
@@ -29,10 +29,13 @@ if __name__ == '__main__':
         'BC 2' : 1,
         'BC 3' : 2,
         'fartelek': 3,
-        'Trening Specjalistyczny': 4,
+        'Trening Specjalistyczny': 4, #Tempo runs.
         'BC 1 + RT': 5,
+        'Rozgrzewka': 6,#
+        'RT' : 7,
         'Inny' : -1,
     }
     columns = list(df.columns)
-    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_labeled.csv',header = columns)
+    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_labeled_new.csv', header = columns)
+
     stop =1

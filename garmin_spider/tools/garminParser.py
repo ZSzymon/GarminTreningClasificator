@@ -61,11 +61,14 @@ def change_file_extension(file_name, ext):
         file_name = file_name[:dot_index] + ext
     return file_name
 
+
 def to_seconds_time(row):
     try:
-        if len(row) <= 5:
+        if len(row) <= 6:
+            if (len(row)) == 6:
+                stop = 1
             to_return = to_sec(row)
-        elif len(row) > 5:
+        elif len(row) >= 7:
             colon_index = str(row).find(':')
             hours = float(row[:colon_index])
             rest = to_sec(row[colon_index + 1:])
@@ -78,10 +81,11 @@ def to_seconds_time(row):
 
     return to_return
 
+
 def get_clean_column_as_np_array(df, column_name, convert_to_sec=True, skip=1):
     col = df[column_name].copy()
     col = col.replace('0', np.nan)
-    col = col.replace('--',np.nan)
+    col = col.replace('--', np.nan)
     col = col.dropna()
 
     if convert_to_sec:
@@ -90,30 +94,28 @@ def get_clean_column_as_np_array(df, column_name, convert_to_sec=True, skip=1):
     col = np.array(col)
     if col.shape[0] == 2 and skip > 1:
         skip = 1
-    col = col[:(-1*skip)]
+    col = col[:(-1 * skip)]
     return col
+
+
 def remove_outliners(df_col):
     to_return = df_col[(np.abs(stats.zscore(df_col)) < 3)]
     return to_return
 
-def get_summary_from_csv(file_name):
-    if file_name == '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs/activity_5920030657.csv':
-        stop =1
 
+def get_summary_from_csv(file_name):
     df = pd.read_csv(file_name)
-    columns_to_delete = ['Laps','Cumulative Time',
+    columns_to_delete = ['Laps', 'Cumulative Time',
                          'Moving Time', 'Avg Moving Pace', 'Best Pace'
                          ]
     df = delete_columns(df, columns_to_delete)
 
-    distances = get_clean_column_as_np_array(df, 'Distance',convert_to_sec=False)
+    distances = get_clean_column_as_np_array(df, 'Distance', convert_to_sec=False)
 
     skip_rows = 2 if float(distances[-1]) < 0.5 else 1
     paces = get_clean_column_as_np_array(df, 'Avg Pace', skip=skip_rows)
     hrs = get_clean_column_as_np_array(df, 'Avg HR', convert_to_sec=False)
     cadences = get_clean_column_as_np_array(df, 'Avg Run Cadence', convert_to_sec=False)
-
-
 
     new_df = df.tail(1)
     new_df['HR median'] = [np.median(hrs)]
@@ -126,17 +128,15 @@ def get_summary_from_csv(file_name):
     new_df['Cadence std'] = [np.std(cadences)]
     new_df['Time'] = new_df['Time'].apply(to_seconds_time)
     basename = path.basename(file_name)
-    activity_id = basename[basename.find("_")+1: basename.find('.')]
+    activity_id = basename[basename.find("_") + 1: basename.find('.')]
     new_df['File id'] = [activity_id]
     return new_df
 
 
 def create_summary(csv_file):
-    if csv_file == '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs/activity_5741333740.csv':
-        stop =1
-
     df = get_summary_from_csv(csv_file)
     return df
+
 
 def delete_columns(df, columns_to_delete):
     not_deleted = []
@@ -147,9 +147,10 @@ def delete_columns(df, columns_to_delete):
         not_deleted.append(col)
     return df
 
+
 if __name__ == '__main__':
 
-    csvs_dir = '/resources/garmin_data/csvs'
+    csvs_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs'
 
     files = [path.join(csvs_dir, f) for f in os.listdir(csvs_dir) if path.isfile(path.join(csvs_dir, f))]
 
@@ -160,20 +161,17 @@ if __name__ == '__main__':
         else:
             df = df.append(new_row)
 
-
-    df = delete_columns(df, ['Interval', 'Lap','Cumulative Time','Moving Time',
+    df = delete_columns(df, ['Interval', 'Lap', 'Cumulative Time', 'Moving Time',
                              'Avg Moving Pace', 'Avg Ground Contact Time',
-                             'Avg Vertical Oscillation', 'Step Type', 'Best Pace','Unnamed: 0',
+                             'Avg Vertical Oscillation', 'Step Type', 'Best Pace', 'Unnamed: 0',
                              'Avg Pace'])
     training_types = {
-        'BC 1' : 0,
-        'BC 2' : 1,
-        'BC 3' : 2,
+        'BC 1': 0,
+        'BC 2': 1,
+        'BC 3': 2,
         'fartelek': 3,
         'Trening Specjalistyczny': 4,
-        'Inny' : 5,
+        'Inny': 5,
     }
     df['Type'] = 0
-
-    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin3.csv')
-
+    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_no_label.csv')
