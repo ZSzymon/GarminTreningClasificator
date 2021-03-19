@@ -9,7 +9,11 @@ def determine_type(df : pd.DataFrame):
         if 120< row['Avg HR'] < 160 and row['Avg Pace(s/km)'] > (3*60 + 50) and row['HR std'] < 20\
                 and row['Pace std'] < 25:
             df.at[i,'Type'] = 0
-        elif 150 < row['Avg HR'] < 180 and row['Pace std'] < 40 and row['Avg Pace(s/km)'] < (3*60 + 50):
+        elif 120< row['Avg HR'] < 160 and row['Avg Pace(s/km)'] > (3*60 + 45) and row['HR std'] < 20\
+                and row['Pace std'] < 25 and 1 < row['Distance'] < 4:
+            df.at[i,'Type'] = 6
+
+        elif 155 < row['Avg HR'] < 180 and row['Pace std'] < 40 and row['Avg Pace(s/km)'] < (3*60 + 50):
             df.at[i,'Type'] = 1
         else:
             df.at[i, 'Type'] = -1
@@ -20,7 +24,7 @@ def determine_type(df : pd.DataFrame):
 
 
 if __name__ == '__main__':
-    summary_path = '/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_no_label.csv'
+    summary_path = '/home/zywko/PycharmProjects/BA_Code/resources/polar_data/summary_polar_to_label.csv'
     df = pd.read_csv(summary_path)
     determine_type(df)
     stop = 1
@@ -36,6 +40,6 @@ if __name__ == '__main__':
         'Inny' : -1,
     }
     columns = list(df.columns)
-    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_labeled_new.csv', header = columns)
+    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/polar_data/summary_polar_prelabeled.csv', header = columns)
 
     stop =1

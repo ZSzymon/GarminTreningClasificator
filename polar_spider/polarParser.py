@@ -11,7 +11,7 @@ from os import path
 from scipy import stats
 from scipy import ndimage
 from pathlib import Path
-
+from datetime import datetime
 from tools import *
 
 
@@ -142,23 +142,36 @@ class GarminParser:
 
     def process_file(self, file):
         df = self.get_primary_sumarry_order(pd.read_csv(file, nrows=1), pd.read_csv(file, skiprows=2))
-        df['File id'] = [os.path.basename(file)]
-        df['Type'] = -1
+
+        if not df.empty:
+            file_name = os.path.basename(file)
+            splited = str.split(os.path.basename(file_name),"_")
+            start_date = (splited[2])
+            start_time = splited[3].split('.')[0]
+            df['File name'] = [file_name]
+            df['Date'] = [datetime.strptime(start_date, '%Y-%m-%d').date()]
+            df['Start time'] = [start_time]
+            df['Type'] = -1
+
         return df
 
     def process_dir(self):
-        df = pd.DataFrame()
+
         dir = self.sourcedir
+        df_initialized = False
         files = [path.join(dir, f) for f in os.listdir(dir) if path.isfile(path.join(dir, f))]
-        for i, file in enumerate(files):
+        for file in files:
             if file.lower().endswith('rr.csv'):
                 continue
             new_row = self.process_file(file)
-            if i == 0:
-                df = pd.DataFrame(new_row)
+            if not new_row.empty:
+                if not df_initialized:
+                    df = pd.DataFrame(new_row)
+                    df_initialized = True
+                else:
+                    df = df.append(new_row)
             else:
-                df = df.append(new_row)
-
+                stop =1
         df.to_csv(self.destfile)
 
 
