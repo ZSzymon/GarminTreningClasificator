@@ -5,14 +5,18 @@ __pycache__/
 
 # C extensions
 *.so
-
+tmp/
 # Distribution / packaging
 .Python
+tests/
 env/
 build/
 develop-eggs/
 dist/
 downloads/
+downloads_path/
+resources/*
+polar_spider/resources/
 eggs/
 .eggs/
 lib/
