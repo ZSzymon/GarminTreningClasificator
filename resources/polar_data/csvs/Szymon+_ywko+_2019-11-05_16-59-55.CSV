@@ -1,0 +1,8 @@
+Name,Sport,Date,Start time,Duration,Total distance (km),Average heart rate (bpm),Average speed (km/h),Max speed (km/h),Average pace (min/km),Max pace (min/km),Calories,Fat percentage of calories(%),Average cadence (rpm),Average stride length (cm),Running index,Training load,Ascent (m),Descent (m),Average power (W),Max power (W),Notes,Height (cm),Weight (kg),HR max,HR sit,VO2max,
+Szymon  Żywko ,CROSS_FIT,11/05/2019,16:59:55,00:00:06,,96,,,,,,,,,,0,,,,,,179.0,62.0,205,65,71,
+Sample rate,Time,HR (bpm),Speed (km/h),Pace (min/km),Cadence,Altitude (m),Stride length (m),Distances (m),Temperatures (C),Power (W),
+1,00:00:00,96,,,,,,,21.7,,
+,00:00:01,96,,,,,,,21.7,,
+,00:00:02,96,,,,,,,21.8,,
+,00:00:03,95,,,,,,,21.8,,
+,00:00:04,95,,,,,,,21.8,,

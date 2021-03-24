@@ -15,7 +15,6 @@ develop-eggs/
 dist/
 downloads/
 downloads_path/
-resources/*
 polar_spider/resources/
 eggs/
 .eggs/
