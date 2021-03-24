@@ -16,6 +16,9 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
+from os import path
+from sklearn import metrics
+import seaborn as sns
 classifiers = {
     "SGD Classifier": SGDClassifier(),
     'Logistic Regression:': LogisticRegression(random_state=0),
@@ -56,6 +59,44 @@ def plot_dataset(X, y):
     plt.show()
 
 
+def plot_confucion_matrix(y_test, predictions, score, path_to_save,name):
+    cm = metrics.confusion_matrix(y_test, predictions)
+    plt.figure(figsize=(9, 9))
+    sns.heatmap(cm, annot=True, fmt=".3f", linewidths=.5, square=True, cmap='Blues_r');
+    plt.ylabel('Actual label');
+    plt.xlabel('Predicted label');
+
+    all_sample_title = '{}\nAccuracy Score: {:.3f}'.format(name, score,)
+    plt.title(all_sample_title, size=15)
+    plt.savefig(path_to_save+'.png')
+
+    pass
+def plot_confucion_matrix_side_by_side(y_test, predictions, score, path_to_save,name):
+
+    fig, ax =plt.subplots(1, 2, figsize=(7, 7))
+    cm = metrics.confusion_matrix(y_test[0], predictions[0])
+    ax1 = ax[0]
+
+    sns.heatmap(cm, annot=True, fmt=".3f", linewidths=.5, square=True, cmap='Blues_r',ax=ax[0])
+    ax[0].set_ylabel('Actual label')
+    ax[0].set_xlabel('Predicted label')
+    #plt.ylabel('Actual label')
+    #plt.xlabel('Predicted label')
+    all_sample_title = '{1}\nAccuracy Score: {0}'.format(score[0], name)
+    ax[0].set_title(all_sample_title, size=15)
+
+    cm = metrics.confusion_matrix(y_test[1], predictions[1])
+
+    sns.heatmap(cm, annot=True, fmt=".3f", linewidths=.5, square=True, cmap='Blues_r',ax=ax[1]);
+    ax[1].set_ylabel('Actual label');
+    ax[1].set_xlabel('Predicted label');
+    all_sample_title = '{}\nAccuracy Score: {:.3f}'.format(name+" z nadpróbkowaniem", score[1],)
+    ax[1].set_title(all_sample_title, size=7)
+
+    #plt.savefig(path_to_save+'.png')
+    plt.show()
+    pass
+
 
 if __name__ == '__main__':
     oversample_data = True
@@ -78,7 +119,6 @@ if __name__ == '__main__':
     print(Counter(y_over))
     plot_dataset(X_over, y_over)
 
-
     X_train_over, X_test_over, y_train_over, y_test_over = \
         train_test_split(X_over, y_over, test_size=.25, random_state=42)
 
@@ -86,13 +126,18 @@ if __name__ == '__main__':
         train_test_split(X, y, test_size=.25, random_state=42)
     df = pd.DataFrame(columns=['Model', 'Accurancy','Accurancy over','Diffrence','Improvment'])
     i = 0
-
+    garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots'
     for name, classifier in classifiers.items():
         clf = createModel(X_train, y_train, classifier)
         predictions, accurancy = get_accurancy(clf, X_test, y_test)
         clf_over = createModel(X_train_over, y_train_over, classifier)
 
         predictions_over, accurancy_over = get_accurancy(clf_over, X_test_over, y_test_over)
+        plot_confucion_matrix(y_test_over, predictions_over, accurancy_over,
+                              path.join(garmin_dir,name+"oversampling"),name+" oversampling")
+
+        plot_confucion_matrix(y_test, predictions, accurancy,
+                              path.join(garmin_dir,name), name)
 
         delta = accurancy_over - accurancy
         df.loc[i] = [name, accurancy, accurancy_over, delta, (delta/accurancy)*100]
