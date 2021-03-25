@@ -63,6 +63,8 @@ def change_file_extension(file_name, ext):
 
 
 def to_seconds_time(row):
+    if isinstance(row, float):
+        return row
     try:
         if len(row) <= 6:
             if (len(row)) == 6:
@@ -102,22 +104,62 @@ def remove_outliners(df_col):
     to_return = df_col[(np.abs(stats.zscore(df_col)) < 3)]
     return to_return
 
+def to_number_my(series):
+    tempo = series['Średnie tempo'].item()
+    series['Średnie tempo'] = [to_seconds_time(tempo)]
+    series['Średnia długość kroku'] = [float(series['Średnia długość kroku'].item())]
+    series['Czas'] = [to_seconds_time(series['Czas'].item())]
+    kalorie = series['Kalorie'].item()
+    if isinstance(kalorie, str):
+        kalorie = kalorie.replace(',','')
 
+    wysokosc_wzrost = series['Wzrost wysokości'].item()
+    if isinstance(wysokosc_wzrost, str):
+        wysokosc_wzrost = wysokosc_wzrost.replace(',', '')
+
+    wysokosc_spadek = series['Wzrost wysokości'].item()
+    if isinstance(wysokosc_spadek, str):
+        wysokosc_spadek = wysokosc_spadek.replace(',', '')
+
+    series['Kalorie'] = [float(kalorie)]
+    series['Wzrost wysokości'] = [float(wysokosc_wzrost)]
+    series['Spadek wysokości'] = [float(wysokosc_spadek)]
+
+    return series
 def get_summary_from_csv(file_name):
+    empty = pd.DataFrame()
     df = pd.read_csv(file_name)
-    columns_to_delete = ['Laps', 'Cumulative Time',
-                         'Moving Time', 'Avg Moving Pace', 'Best Pace'
+
+    columns_to_delete = ['Okrążenia', 'Łączny czas',
+                         'Czas ruchu', 'Średnio tempo ruchu', 'Najlepsze tempo'
                          ]
     df = delete_columns(df, columns_to_delete)
-
-    distances = get_clean_column_as_np_array(df, 'Distance', convert_to_sec=False)
+    try:
+        df = df.drop(df.columns[10], axis=1)
+        df = df.drop(df.columns[11], axis=1)
+    except Exception:
+        stop =1
+    columns = list(df.columns)
+    distances = get_clean_column_as_np_array(df, columns[1], convert_to_sec=False)
 
     skip_rows = 2 if float(distances[-1]) < 0.5 else 1
-    paces = get_clean_column_as_np_array(df, 'Avg Pace', skip=skip_rows)
-    hrs = get_clean_column_as_np_array(df, 'Avg HR', convert_to_sec=False)
-    cadences = get_clean_column_as_np_array(df, 'Avg Run Cadence', convert_to_sec=False)
+    if file_name =='/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs_jakub/activity_4454636887.csv':
+        stop =1
+    if columns[2] == 'Średnie tempo':
+        paces = get_clean_column_as_np_array(df, columns[2], skip=skip_rows,convert_to_sec=True)
+    else:
+        return empty
+    if columns[3] == 'Średnie tętno':
+        hrs = get_clean_column_as_np_array(df, columns[3], convert_to_sec=False)
+    else:
+        return empty
+    if columns[7] == 'Średni rytm biegu':
+        cadences = get_clean_column_as_np_array(df, columns[7], convert_to_sec=False)
+    else:
+        return empty
 
     new_df = df.tail(1)
+    new_df = to_number_my(new_df)
     new_df['HR median'] = [np.median(hrs)]
     new_df['HR std'] = [np.std(hrs)]
     new_df['Pace std'] = [np.std(paces)]
@@ -126,10 +168,11 @@ def get_summary_from_csv(file_name):
     new_df['Best Lap(s/km)'] = [np.min(paces)]
     new_df['Cadence median'] = [np.median(cadences)]
     new_df['Cadence std'] = [np.std(cadences)]
-    new_df['Time'] = new_df['Time'].apply(to_seconds_time)
+    new_df['Czas'] = new_df['Czas'].apply(to_seconds_time)
     basename = path.basename(file_name)
     activity_id = basename[basename.find("_") + 1: basename.find('.')]
     new_df['File id'] = [activity_id]
+
     return new_df
 
 
@@ -150,7 +193,7 @@ def delete_columns(df, columns_to_delete):
 
 if __name__ == '__main__':
 
-    csvs_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs'
+    csvs_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/csvs_jakub'
 
     files = [path.join(csvs_dir, f) for f in os.listdir(csvs_dir) if path.isfile(path.join(csvs_dir, f))]
 
@@ -165,13 +208,6 @@ if __name__ == '__main__':
                              'Avg Moving Pace', 'Avg Ground Contact Time',
                              'Avg Vertical Oscillation', 'Step Type', 'Best Pace', 'Unnamed: 0',
                              'Avg Pace'])
-    training_types = {
-        'BC 1': 0,
-        'BC 2': 1,
-        'BC 3': 2,
-        'fartelek': 3,
-        'Trening Specjalistyczny': 4,
-        'Inny': 5,
-    }
+
     df['Type'] = 0
     df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_no_label_jakub.csv')
