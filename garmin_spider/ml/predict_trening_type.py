@@ -18,6 +18,8 @@ from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import plot_confusion_matrix
 from sklearn import tree
+from collections.abc import Iterable
+
 
 from os import path
 from sklearn import metrics
@@ -36,7 +38,7 @@ training_types = {
 
 classifiers = {
     "SGD Classifier": SGDClassifier(),
-    'Logistic Regression:': LogisticRegression(random_state=0),
+    'Logistic Regression:': LogisticRegression(random_state=0, max_iter=1000),
     "Decision Tree Classifier": DecisionTreeClassifier(max_depth=5),
     "Random Forest Classifier": RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
     "Linear SVM": SVC(kernel="linear", C=0.025),
@@ -45,14 +47,20 @@ classifiers = {
 }
 
 
-def read_data(file, is_jakub_files=False):
+def read_data(file, not_allowed_col_val : dict = None):
+
     df = pd.read_csv(file)
-    if is_jakub_files:
-        X = np.array(df.iloc[:, 1:-2].apply(pd.to_numeric))
-        y = np.array(df.iloc[:, -1])
-    else:
-        X = np.array(df.iloc[:, 1:-2].apply(pd.to_numeric))
-        y = np.array(df.iloc[:, -1])
+    if not_allowed_col_val:
+        for col, vals in not_allowed_col_val.items():
+            if isinstance(vals, Iterable):
+                for val in vals:
+                    df = df[df[col] != val]
+            else:
+                df = df[df[col] != vals]
+
+
+    X = np.array(df.iloc[:, 1:-2].apply(pd.to_numeric))
+    y = np.array(df.iloc[:, -1])
     return X, y
 
 
@@ -143,6 +151,14 @@ def plot_tree_fun(X, y):
     plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon.png')
 
 
+def prepare_data(file):
+    X, y = read_data(file, {'Type': ['RT', '7'], })
+    y = change_labels(y)
+
+
+
+    return X, y
+    pass
 
 
 if __name__ == '__main__':
@@ -157,9 +173,10 @@ if __name__ == '__main__':
     if oversample_data:
         steps.append(('o', SMOTE(random_state=101, k_neighbors=5)))
 
-    file = '/resources/garmin_data/summary_labeled_jakob_szymon_improved.csv'
-    X, y = read_data(file)
-    y = change_labels(y)
+    file = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/summary_labeled_jakob_szymon_improved.csv'
+
+
+    X, y = prepare_data(file)
 
     plot_dataset(X, y)
 
@@ -169,10 +186,11 @@ if __name__ == '__main__':
     plot_dataset(X_over, y_over)
 
     X_train_over, X_test_over, y_train_over, y_test_over = \
-        train_test_split(X_over, y_over, test_size=.25, random_state=42)
+        train_test_split(X_over, y_over, test_size=.20, random_state=42)
 
     X_train, X_test, y_train, y_test = \
-        train_test_split(X, y, test_size=.25, random_state=42)
+        train_test_split(X, y, test_size=.20, random_state=42)
+
     df = pd.DataFrame(columns=['Model', 'Accurancy', 'Accurancy over', 'Diffrence', 'Improvment'])
 
     i=0
