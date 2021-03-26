@@ -138,7 +138,7 @@ def change_labels(y):
     return np.array(result)
 
 
-def plot_tree_fun(X, y):
+def tree_ploter(X, y):
     labels_names = ['BC 1', 'BC 2', 'BC 3',
                     'fartelek', 'BC 1 + RT', 'Rozgrzewka', 'RT',
                     ]
@@ -148,7 +148,7 @@ def plot_tree_fun(X, y):
     clf = DecisionTreeClassifier()
     clf.fit(X, y)
     _ = tree.plot_tree(clf, feature_names=features_name, class_names=labels_names, filled=True)
-    plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon.png')
+    plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon_smaller.png')
 
 
 def prepare_data(file):
@@ -162,11 +162,11 @@ def prepare_data(file):
 
 
 if __name__ == '__main__':
-
+    run_classificators = False
     oversample_data = True
     undersample_data = False
+    plot_tree = True
     steps = []
-
     if undersample_data:
         steps.append(('u', RandomUnderSampler(sampling_strategy={0: 100})))
         # better not use :)
@@ -195,26 +195,27 @@ if __name__ == '__main__':
 
     i=0
     garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v2'
-    plot_tree_fun(X=X_train_over, y= y_train_over)
-    for name, classifier in classifiers.items():
-        clf = createModel(X_train, y_train, classifier)
-        predictions, accurancy = get_accurancy(clf, X_test, y_test)
+    if plot_tree:
+        tree_ploter(X=X_train_over, y= y_train_over)
 
-        clf_over = createModel(X_train_over, y_train_over, classifier)
-        predictions_over, accurancy_over = get_accurancy(clf_over, X_test_over, y_test_over)
+    if run_classificators:
+        for name, classifier in classifiers.items():
+            clf = createModel(X_train, y_train, classifier)
+            predictions, accurancy = get_accurancy(clf, X_test, y_test)
 
-        plot_matrix(clf_over, X_test_over, y_test_over,
-                              path.join(garmin_dir, name), name)
-        #plot_matrix(clf, X_test, y_test,
-        #           path.join(garmin_dir, name), name)
+            clf_over = createModel(X_train_over, y_train_over, classifier)
+            predictions_over, accurancy_over = get_accurancy(clf_over, X_test_over, y_test_over)
 
-
-        delta = accurancy_over - accurancy
-        df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
-
-        i += 1
+            plot_matrix(clf_over, X_test_over, y_test_over,
+                                  path.join(garmin_dir, name), name)
+            #plot_matrix(clf, X_test, y_test,
+            #           path.join(garmin_dir, name), name)
 
 
-    print(df)
+            delta = accurancy_over - accurancy
+            df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
+
+            i += 1
+        print(df)
 
 
