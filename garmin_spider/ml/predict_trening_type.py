@@ -17,6 +17,8 @@ from sklearn.linear_model import LogisticRegression
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import plot_confusion_matrix
+from sklearn import tree
+
 from os import path
 from sklearn import metrics
 import seaborn as sns
@@ -43,10 +45,14 @@ classifiers = {
 }
 
 
-def read_data(file):
+def read_data(file, is_jakub_files=False):
     df = pd.read_csv(file)
-    X = np.array(df.iloc[:, 2:-2].apply(pd.to_numeric))
-    y = np.array(df.iloc[:, -1].apply(pd.to_numeric))
+    if is_jakub_files:
+        X = np.array(df.iloc[:, 1:-2].apply(pd.to_numeric))
+        y = np.array(df.iloc[:, -1])
+    else:
+        X = np.array(df.iloc[:, 1:-2].apply(pd.to_numeric))
+        y = np.array(df.iloc[:, -1])
     return X, y
 
 
@@ -84,6 +90,7 @@ def plot_confucion_matrix(y_test, predictions, score, path_to_save, name):
     plt.title(all_sample_title, size=15)
     plt.savefig(path_to_save + '.png')
 
+
 def plot_matrix(clf, X_test, y_test, save_path, name):
     predictions, accurancy = get_accurancy(clf_over, X_test, y_test)
     plot_confusion_matrix(clf, X_test, y_test)
@@ -97,19 +104,45 @@ def plot_matrix(clf, X_test, y_test, save_path, name):
 
 def change_labels(y):
     training_types_labels = {
-        0: 'BC 1',
-        1: 'BC 2',
-        2: 'BC 3',
-        3: 'fartelek',
-        5: 'BC 1 + RT',
-        6: 'Rozgrzewka',  #
-        7: 'RT',
-        -1: 'Inny',
+        '0': 'BC 1',
+        '1': 'BC 2',
+        '2': 'BC 3',
+        '3': 'fartelek',
+        '5': 'BC 1 + RT',
+        '6': 'Rozgrzewka',  #
+        '7': 'RT',
+        '-1': 'Inny',
+        'BC 1':'BC 1',
+        'BC 2':'BC 2',
+        'BC 3':'BC 3',
+        'fartelek':'fartelek',
+        'BC 1 + RT':'BC 1 + RT',
+        'Rozgrzewka':'Rozgrzewka',  #
+        'RT':'RT',
+        'Inny':'Inny'
+
     }
     result = []
     for i, el in enumerate(y):
+
         result.append(training_types_labels[el])
+
     return np.array(result)
+
+
+def plot_tree_fun(X, y):
+    labels_names = ['BC 1', 'BC 2', 'BC 3',
+                    'fartelek', 'BC 1 + RT', 'Rozgrzewka', 'RT',
+                    ]
+    features_name = list(pd.read_csv(file, nrows=1).columns)[1:-2]
+
+    fig = plt.figure(figsize=(100, 80))
+    clf = DecisionTreeClassifier()
+    clf.fit(X, y)
+    _ = tree.plot_tree(clf, feature_names=features_name, class_names=labels_names, filled=True)
+    plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon.png')
+
+
 
 
 if __name__ == '__main__':
@@ -122,9 +155,9 @@ if __name__ == '__main__':
         steps.append(('u', RandomUnderSampler(sampling_strategy={0: 100})))
         # better not use :)
     if oversample_data:
-        steps.append(('o', SMOTE(random_state=101, k_neighbors=2)))
+        steps.append(('o', SMOTE(random_state=101, k_neighbors=5)))
 
-    file = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/summary_labeled.csv'
+    file = '/resources/garmin_data/summary_labeled_jakob_szymon_improved.csv'
     X, y = read_data(file)
     y = change_labels(y)
 
@@ -141,8 +174,10 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = \
         train_test_split(X, y, test_size=.25, random_state=42)
     df = pd.DataFrame(columns=['Model', 'Accurancy', 'Accurancy over', 'Diffrence', 'Improvment'])
-    i = 0
-    garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots'
+
+    i=0
+    garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v2'
+    plot_tree_fun(X=X_train_over, y= y_train_over)
     for name, classifier in classifiers.items():
         clf = createModel(X_train, y_train, classifier)
         predictions, accurancy = get_accurancy(clf, X_test, y_test)
@@ -151,14 +186,17 @@ if __name__ == '__main__':
         predictions_over, accurancy_over = get_accurancy(clf_over, X_test_over, y_test_over)
 
         plot_matrix(clf_over, X_test_over, y_test_over,
-                               path.join(garmin_dir, name + "oversampling"), name + " z nadpróbkowaniem")
-        plot_matrix(clf, X_test, y_test,
-                    path.join(garmin_dir, name), name)
-#
+                              path.join(garmin_dir, name), name)
+        #plot_matrix(clf, X_test, y_test,
+        #           path.join(garmin_dir, name), name)
 
 
         delta = accurancy_over - accurancy
-        df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy) * 100]
+        df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
+
         i += 1
 
+
     print(df)
+
+
