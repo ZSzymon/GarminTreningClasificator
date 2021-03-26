@@ -13,12 +13,14 @@ from selenium import webdriver
 
 
 class Garmin_Cursor:
+
     def get_currentTime(self):
         now = datetime.now()
         currentTime = now.strftime("%H:%M:%S")
         return currentTime
 
-    def _init___(self,starting_page):
+    def __init__(self):
+        self.max_time = 10
         BASE_DIR = Path(__file__).resolve().parent
         DOWNLOAD_PATH = '/home/zywko/PycharmProjects/BA_Code/garmin_spider/downloads'
         if not os.path.isdir(DOWNLOAD_PATH):
@@ -48,7 +50,7 @@ class Garmin_Cursor:
         self.downloaded_files = set(self.downloaded_files)
         # logging.basicConfig()
 
-    def __findAndClick__(self, buttonVal, maxTime=5, error_message='', by=By.ID):
+    def __findAndClick__(self, buttonVal, maxTime=10, error_message='', by=By.ID):
         try:
             button = WebDriverWait(self.driver, maxTime).until(
                 EC.presence_of_element_located((by, buttonVal))
@@ -63,7 +65,7 @@ class Garmin_Cursor:
 
             pass
 
-    def __getButton__(self, buttonVal, by=By.ID, maxTime=5, error_message='Not Found button'):
+    def __getButton__(self, buttonVal, by=By.ID, maxTime=10, error_message='Not Found button'):
         try:
             button = WebDriverWait(self.driver, maxTime).until(
                 EC.presence_of_element_located((by, buttonVal))
@@ -83,7 +85,7 @@ class Garmin_Cursor:
 
     def openPrevSite(self):
         self.__findAndClick__(buttonVal='//*[@id="activityIntroViewPlaceholder"]/div[2]/button[1]/i',
-                              maxTime=5,
+                              maxTime=self.max_time,
                               error_message='Could not find prev Page',
                               by=By.XPATH)
 
@@ -91,7 +93,7 @@ class Garmin_Cursor:
 
     def clickSettingButton(self):
         self.__findAndClick__(buttonVal='//*[@id="activityToolbarViewPlaceholder"]/div[3]/div[3]/button',
-                              maxTime=5,
+                              maxTime=self.max_time,
                               error_message='Not found settings button',
                               by=By.XPATH)
         pass
@@ -99,7 +101,7 @@ class Garmin_Cursor:
     def exportOriginal(self):
         button = self.__getButton__(buttonVal='//*[@id="btn-export-original"]',
                                     by=By.XPATH,
-                                    maxTime=5,
+                                    maxTime=self.max_time,
                                     error_message='Not Found Export Original button')
         webdriver.ActionChains(self.driver).move_to_element(button).click().perform()
         return button
@@ -107,48 +109,48 @@ class Garmin_Cursor:
     def exportTCX(self):
         button = self.__getButton__(buttonVal='//*[@id="btn-export-tcx"]',
                                     by=By.XPATH,
-                                    maxTime=5,
+                                    maxTime=self.max_time,
                                     error_message='Not Found Export TCX button')
         pass
 
     def exportGPX(self):
         button = self.__getButton__(buttonVal='//*[@id="btn-export-gpx"]',
                                     by=By.XPATH,
-                                    maxTime=5,
+                                    maxTime=self.max_time,
                                     error_message='Not Found Export TCX button')
         return button
 
     def exportSplitsCSV(self):
         button = self.__getButton__(buttonVal='//*[@id="btn-export-csv"]',
                                     by=By.XPATH,
-                                    maxTime=5,
+                                    maxTime=self.max_time,
                                     error_message='Not Found Export TCX button')
         return button
         pass
 
     def download_all(self):
         self.clickSettingButton()
-        b = self.__getButton__(buttonVal="#btn-export-original > a",
-                               by=By.CSS_SELECTOR,
-                               maxTime=2,
-                               error_message='Not found Export original button')
-        b.click()
-        self.clickSettingButton()
-        b = self.__getButton__(buttonVal="#btn-export-tcx > a",
-                               by=By.CSS_SELECTOR,
-                               maxTime=2,
-                               error_message='Not found Export TCX button')
-        b.click()
-        self.clickSettingButton()
-        b = self.__getButton__(buttonVal="#btn-export-gpx > a",
-                               by=By.CSS_SELECTOR,
-                               maxTime=2,
-                               error_message='Not found Export GPX button')
-        b.click()
-        self.clickSettingButton()
+        #b = self.__getButton__(buttonVal="#btn-export-original > a",
+        #                       by=By.CSS_SELECTOR,
+        #                       maxTime=self.max_time,
+        #                       error_message='Not found Export original button')
+        #b.click()
+        #self.clickSettingButton()
+        #b = self.__getButton__(buttonVal="#btn-export-tcx > a",
+        #                       by=By.CSS_SELECTOR,
+        #                       maxTime=self.max_time,
+        #                       error_message='Not found Export TCX button')
+        #b.click()
+        #self.clickSettingButton()
+        #b = self.__getButton__(buttonVal="#btn-export-gpx > a",
+        #                       by=By.CSS_SELECTOR,
+        #                       maxTime=self.max_time,
+        #                       error_message='Not found Export GPX button')
+        #b.click()
+        #self.clickSettingButton()
         b = self.__getButton__(buttonVal="#btn-export-csv > a",
                                by=By.CSS_SELECTOR,
-                               maxTime=2,
+                               maxTime=self.max_time,
                                error_message='Not found Export CSV button')
         b.click()
 
@@ -157,7 +159,7 @@ class Garmin_Cursor:
             buttonVal="#activity-map-canvas > div.leaflet-pane.leaflet-map-pane >"
                       " div.leaflet-pane.leaflet-overlay-pane > svg",
             by=By.CSS_SELECTOR,
-            maxTime=2,
+            maxTime=3,
             error_message='No found gps track')
         if map:
             return True
@@ -167,7 +169,7 @@ class Garmin_Cursor:
         element = self.__getButton__(
             buttonVal="#react-activitySmallStats > div > div > div:nth-child(1) > div > div",
             by=By.CSS_SELECTOR,
-            maxTime=2,
+            maxTime=self.max_time,
             error_message='No found distance of activity')
         km = int(re.findall(r'\d+', element.text)[0])
 
@@ -177,19 +179,19 @@ class Garmin_Cursor:
         element = self.__getButton__(
             buttonVal='//*[@id="activityIntroViewPlaceholder"]/div[1]/h3/div/div/span',
             by=By.XPATH,
-            maxTime=2,
+            maxTime=self.max_time,
             error_message='No found Title of activity')
-        return "Running" in element.text
+        return "Running" or "Bieg" in element.text
 
     def isPaceInRange(self, min=120, max=330):
         element = self.__getButton__(
             buttonVal='//*[@id="react-activitySmallStats"]/div/div/div[3]/div/div',
             by=By.XPATH,
-            maxTime=2,
+            maxTime=self.max_time,
             error_message='No found Avg Pace')
         minutes, sec = re.findall(r'\d+', element.text)
         time = (int(minutes) * 60) + int(sec)
-        return time in range(min, max + 1)
+        return min < time < max
 
     def get_activity_name_csv(self,url):
         last_slash = str(url).rfind('/')
@@ -221,9 +223,9 @@ class Garmin_Cursor:
                 self.waitUntilPageRefreshed()
                 file = self.driver.current_url
 
-                if all(cond() for cond in conditions) and not self.is_downloaded_already(file):
+                if all(cond() for cond in conditions):
                     self.download_all()
-                    self.downloaded_files.add(self.get_activity_name_csv(file))
+                    #self.downloaded_files.add(self.get_activity_name_csv(file))
 
                 self.openPrevSite()
 
@@ -234,7 +236,7 @@ class Garmin_Cursor:
 
 
 if __name__ == '__main__':
-    starting_page = 'https://connect.garmin.com/modern/activity/5220995547'
-    cursor = Garmin_Cursor(starting_page)
+    starting_page = 'https://connect.garmin.com/modern/activity/6342976016'
+    cursor = Garmin_Cursor()
     cursor.loop()
     pass

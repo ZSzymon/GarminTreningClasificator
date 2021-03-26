@@ -174,4 +174,4 @@ if __name__ == '__main__':
         'Inny': 5,
     }
     df['Type'] = 0
-    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_no_label.csv')
+    df.to_csv('/home/zywko/PycharmProjects/BA_Code/resources/summary_garmin_no_label_jakub.csv')
