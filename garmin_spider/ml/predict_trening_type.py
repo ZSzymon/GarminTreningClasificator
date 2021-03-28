@@ -49,8 +49,7 @@ classifiers = {
 }
 
 
-def read_data(file, not_allowed_col_val : dict = None):
-
+def read_data(file, not_allowed_col_val: dict = None):
     df = pd.read_csv(file)
     if not_allowed_col_val:
         for col, vals in not_allowed_col_val.items():
@@ -59,7 +58,6 @@ def read_data(file, not_allowed_col_val : dict = None):
                     df = df[df[col] != val]
             else:
                 df = df[df[col] != vals]
-
 
     X = np.array(df.iloc[:, 1:-2].apply(pd.to_numeric))
     y = np.array(df.iloc[:, -1])
@@ -112,7 +110,8 @@ def plot_matrix(clf, X_test, y_test, save_path, name):
     plt.xlabel('Przewidziany typ');
     plt.tight_layout()
     plt.savefig(save_path)
-    #plt.show()
+    # plt.show()
+
 
 def change_labels(y):
     training_types_labels = {
@@ -124,21 +123,19 @@ def change_labels(y):
         '6': 'Rozgrzewka',  #
         '7': 'RT',
         '-1': 'Inny',
-        'BC 1':'BC 1',
-        'BC 2':'BC 2',
-        'BC 3':'BC 3',
-        'fartelek':'Interwały',
-        'BC 1 + RT':'BC 1 + RT',
-        'Rozgrzewka':'Rozgrzewka',  #
-        'RT':'RT',
-        'Inny':'Inny'
+        'BC 1': 'BC 1',
+        'BC 2': 'BC 2',
+        'BC 3': 'BC 3',
+        'fartelek': 'Interwały',
+        'BC 1 + RT': 'BC 1 + RT',
+        'Rozgrzewka': 'Rozgrzewka',  #
+        'RT': 'RT',
+        'Inny': 'Inny'
 
     }
 
-
     result = []
     for i, el in enumerate(y):
-
         result.append(training_types_labels[el])
 
     return np.array(result)
@@ -160,13 +157,12 @@ def tree_ploter(X, y):
 def prepare_data(file):
     X, y = read_data(file, {'Type': ['RT', '7'], })
     y = change_labels(y)
-
-
     return X, y
-    pass
+
+
 def precision_recall_fscore_support_extend(y_true, y_pred, name):
     save_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots'
-    file_to_save = path.join(save_dir, name+'_scores.txt')
+    file_to_save = path.join(save_dir, name + '_scores.txt')
     labels = list(np.unique(y_true))
     precision, recall, fscore, support = precision_recall_fscore_support(y_true, y_pred, labels=labels)
     labels = sorted(labels)
@@ -174,6 +170,7 @@ def precision_recall_fscore_support_extend(y_true, y_pred, name):
         fp.write('name: {}\n'.format(name))
         fp.write('labels: {}\n'.format(labels))
         fp.write('precision: {}\n'.format(precision))
+        fp.write('recall: {}\n'.format(recall))
         fp.write('fscore: {}\n'.format(fscore))
         fp.write('support: {}\n'.format(support))
 
@@ -186,6 +183,7 @@ if __name__ == '__main__':
     undersample_data = False
     plot_tree = True
     plot_matrix_decision = False
+    create_scores = True
     steps = []
     if undersample_data:
         steps.append(('u', RandomUnderSampler(sampling_strategy={0: 100})))
@@ -194,7 +192,6 @@ if __name__ == '__main__':
         steps.append(('o', SMOTE(random_state=101, k_neighbors=7)))
 
     file = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/summary_labeled_jakob_szymon_improved.csv'
-
 
     X, y = prepare_data(file)
     plot_dataset(X, y)
@@ -212,10 +209,10 @@ if __name__ == '__main__':
 
     df = pd.DataFrame(columns=['Model', 'Accurancy', 'Accurancy over', 'Diffrence', 'Improvment'])
 
-    i=0
+    i = 0
     garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v3'
     if plot_tree:
-        tree_ploter(X=X_train_over, y= y_train_over)
+        tree_ploter(X=X_train_over, y=y_train_over)
 
     if run_classificators:
         for name, classifier in classifiers.items():
@@ -227,18 +224,15 @@ if __name__ == '__main__':
 
             if plot_matrix_decision:
                 plot_matrix(clf_over, X_test_over, y_test_over,
-                                      path.join(garmin_dir, name), name)
+                            path.join(garmin_dir, name), name)
 
-            #plot_matrix(clf, X_test, y_test,
+            # plot_matrix(clf, X_test, y_test,
             #           path.join(garmin_dir, name), name)
-
-            #precision_recall_fscore_support_extend(y_test_over, predictions_over, name)
-
+            if create_scores:
+                precision_recall_fscore_support_extend(y_test_over, predictions_over, name)
 
             delta = accurancy_over - accurancy
             df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
 
             i += 1
         print(df)
-
-
