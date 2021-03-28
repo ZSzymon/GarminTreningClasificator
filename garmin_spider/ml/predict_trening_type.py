@@ -150,11 +150,11 @@ def tree_ploter(X, y):
                     ]
     features_name = list(pd.read_csv(file, nrows=1).columns)[1:-2]
 
-    fig = plt.figure(figsize=(100, 80))
+    fig = plt.figure(figsize=(150, 120))
     clf = DecisionTreeClassifier()
     clf.fit(X, y)
     _ = tree.plot_tree(clf, feature_names=features_name, class_names=labels_names, filled=True)
-    plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon_smaller.png')
+    plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon_medium.png')
 
 
 def prepare_data(file):
@@ -164,10 +164,19 @@ def prepare_data(file):
 
     return X, y
     pass
-def precision_recall_fscore_support_extend(y_true, y_pred):
+def precision_recall_fscore_support_extend(y_true, y_pred, name):
+    save_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots'
+    file_to_save = path.join(save_dir, name+'_scores.txt')
     labels = list(np.unique(y_true))
-    scores = precision_recall_fscore_support(y_true, y_pred,labels=labels)
-    print(scores)
+    precision, recall, fscore, support = precision_recall_fscore_support(y_true, y_pred, labels=labels)
+    labels = sorted(labels)
+    with open(file_to_save, 'w+') as fp:
+        fp.write('name: {}\n'.format(name))
+        fp.write('labels: {}\n'.format(labels))
+        fp.write('precision: {}\n'.format(precision))
+        fp.write('fscore: {}\n'.format(fscore))
+        fp.write('support: {}\n'.format(support))
+
     pass
 
 
@@ -175,7 +184,8 @@ if __name__ == '__main__':
     run_classificators = True
     oversample_data = True
     undersample_data = False
-    plot_tree = False
+    plot_tree = True
+    plot_matrix_decision = False
     steps = []
     if undersample_data:
         steps.append(('u', RandomUnderSampler(sampling_strategy={0: 100})))
@@ -188,7 +198,6 @@ if __name__ == '__main__':
 
     X, y = prepare_data(file)
     plot_dataset(X, y)
-
 
     pipeline = Pipeline(steps=steps)
     X_over, y_over = pipeline.fit_resample(X, y)
@@ -216,12 +225,15 @@ if __name__ == '__main__':
             clf_over = createModel(X_train_over, y_train_over, classifier)
             predictions_over, accurancy_over = get_accurancy(clf_over, X_test_over, y_test_over)
 
-            plot_matrix(clf_over, X_test_over, y_test_over,
-                                  path.join(garmin_dir, name), name)
+            if plot_matrix_decision:
+                plot_matrix(clf_over, X_test_over, y_test_over,
+                                      path.join(garmin_dir, name), name)
 
             #plot_matrix(clf, X_test, y_test,
             #           path.join(garmin_dir, name), name)
-            #precision_recall_fscore_support_extend(y_test_over, predictions_over)
+
+            #precision_recall_fscore_support_extend(y_test_over, predictions_over, name)
+
 
             delta = accurancy_over - accurancy
             df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]

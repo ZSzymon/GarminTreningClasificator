@@ -1,0 +1,5 @@
+name: Decision Tree Classifier
+labels: ['BC 1', 'BC 1 + RT', 'BC 2', 'BC 3', 'Interwały', 'Rozgrzewka']
+precision: [0.89090909 0.89830508 0.72727273 0.72727273 0.86666667 0.88679245]
+fscore: [0.875      0.86178862 0.8        0.75471698 0.79591837 0.8952381 ]
+support: [57 64 45 51 53 52]

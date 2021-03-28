@@ -1,0 +1,5 @@
+name: Random Forest Classifier
+labels: ['BC 1', 'BC 1 + RT', 'BC 2', 'BC 3', 'Interwały', 'Rozgrzewka']
+precision: [0.78947368 0.82666667 0.80392157 0.92105263 0.84782609 0.78181818]
+fscore: [0.78947368 0.89208633 0.85416667 0.78651685 0.78787879 0.80373832]
+support: [57 64 45 51 53 52]
