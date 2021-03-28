@@ -17,9 +17,11 @@ from sklearn.linear_model import LogisticRegression
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import plot_confusion_matrix
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import confusion_matrix
 from sklearn import tree
 from collections.abc import Iterable
-
+from sklearn.metrics import precision_recall_fscore_support
 
 from os import path
 from sklearn import metrics
@@ -38,7 +40,7 @@ training_types = {
 
 classifiers = {
     "SGD Classifier": SGDClassifier(),
-    'Logistic Regression:': LogisticRegression(random_state=0, max_iter=1000),
+    'Logistic Regression': LogisticRegression(random_state=0, max_iter=1000),
     "Decision Tree Classifier": DecisionTreeClassifier(max_depth=5),
     "Random Forest Classifier": RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
     "Linear SVM": SVC(kernel="linear", C=0.025),
@@ -101,21 +103,23 @@ def plot_confucion_matrix(y_test, predictions, score, path_to_save, name):
 
 def plot_matrix(clf, X_test, y_test, save_path, name):
     predictions, accurancy = get_accurancy(clf_over, X_test, y_test)
-    plot_confusion_matrix(clf, X_test, y_test)
+    labels = ['BC 1', 'BC 2', 'BC 3', 'Interwały', 'BC 1 + RT', 'Rozgrzewka']
+
+    plot_confusion_matrix(clf, X_test, y_test, normalize='true')
     plt.title(name + "\nDokładność:{:.3f}".format(accurancy))
     plt.ylabel('Prawdziwy typ');
     plt.xticks(rotation=45)
     plt.xlabel('Przewidziany typ');
     plt.tight_layout()
     plt.savefig(save_path)
-
+    #plt.show()
 
 def change_labels(y):
     training_types_labels = {
         '0': 'BC 1',
         '1': 'BC 2',
         '2': 'BC 3',
-        '3': 'fartelek',
+        '3': 'Interwały',
         '5': 'BC 1 + RT',
         '6': 'Rozgrzewka',  #
         '7': 'RT',
@@ -123,13 +127,15 @@ def change_labels(y):
         'BC 1':'BC 1',
         'BC 2':'BC 2',
         'BC 3':'BC 3',
-        'fartelek':'fartelek',
+        'fartelek':'Interwały',
         'BC 1 + RT':'BC 1 + RT',
         'Rozgrzewka':'Rozgrzewka',  #
         'RT':'RT',
         'Inny':'Inny'
 
     }
+
+
     result = []
     for i, el in enumerate(y):
 
@@ -140,7 +146,7 @@ def change_labels(y):
 
 def tree_ploter(X, y):
     labels_names = ['BC 1', 'BC 2', 'BC 3',
-                    'fartelek', 'BC 1 + RT', 'Rozgrzewka', 'RT',
+                    'Interwały', 'BC 1 + RT', 'Rozgrzewka', 'RT',
                     ]
     features_name = list(pd.read_csv(file, nrows=1).columns)[1:-2]
 
@@ -156,29 +162,33 @@ def prepare_data(file):
     y = change_labels(y)
 
 
-
     return X, y
+    pass
+def precision_recall_fscore_support_extend(y_true, y_pred):
+    labels = list(np.unique(y_true))
+    scores = precision_recall_fscore_support(y_true, y_pred,labels=labels)
+    print(scores)
     pass
 
 
 if __name__ == '__main__':
-    run_classificators = False
+    run_classificators = True
     oversample_data = True
     undersample_data = False
-    plot_tree = True
+    plot_tree = False
     steps = []
     if undersample_data:
         steps.append(('u', RandomUnderSampler(sampling_strategy={0: 100})))
         # better not use :)
     if oversample_data:
-        steps.append(('o', SMOTE(random_state=101, k_neighbors=5)))
+        steps.append(('o', SMOTE(random_state=101, k_neighbors=7)))
 
     file = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_data/summary_labeled_jakob_szymon_improved.csv'
 
 
     X, y = prepare_data(file)
-
     plot_dataset(X, y)
+
 
     pipeline = Pipeline(steps=steps)
     X_over, y_over = pipeline.fit_resample(X, y)
@@ -194,7 +204,7 @@ if __name__ == '__main__':
     df = pd.DataFrame(columns=['Model', 'Accurancy', 'Accurancy over', 'Diffrence', 'Improvment'])
 
     i=0
-    garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v2'
+    garmin_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v3'
     if plot_tree:
         tree_ploter(X=X_train_over, y= y_train_over)
 
@@ -208,9 +218,10 @@ if __name__ == '__main__':
 
             plot_matrix(clf_over, X_test_over, y_test_over,
                                   path.join(garmin_dir, name), name)
+
             #plot_matrix(clf, X_test, y_test,
             #           path.join(garmin_dir, name), name)
-
+            #precision_recall_fscore_support_extend(y_test_over, predictions_over)
 
             delta = accurancy_over - accurancy
             df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
