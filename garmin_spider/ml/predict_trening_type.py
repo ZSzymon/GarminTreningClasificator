@@ -21,7 +21,9 @@ from sklearn.metrics import average_precision_score
 from sklearn.metrics import confusion_matrix
 from sklearn import tree
 from collections.abc import Iterable
+from sklearn.metrics import classification_report
 from sklearn.metrics import precision_recall_fscore_support
+from yellowbrick.classifier import ClassificationReport
 
 from os import path
 from sklearn import metrics
@@ -41,10 +43,10 @@ training_types = {
 classifiers = {
     "SGD Classifier": SGDClassifier(),
     'Logistic Regression': LogisticRegression(random_state=0, max_iter=1000),
-    "Decision Tree Classifier": DecisionTreeClassifier(max_depth=5),
-    "Random Forest Classifier": RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
-    "Linear SVM": SVC(kernel="linear", C=0.025),
-    "RBF SVM": SVC(gamma=2, C=1),
+    "Decision Tree Classifier": DecisionTreeClassifier(max_depth=7),
+    "Random Forest Classifier": RandomForestClassifier(max_depth=7, n_estimators=10, max_features=4),
+    "Linear SVM": SVC(kernel="linear", C=4),
+    "RBF SVM": SVC(gamma=.25, C=1),
     "Naive Bayes": GaussianNB(),
 }
 
@@ -85,7 +87,20 @@ def plot_dataset(X, y):
         plt.scatter(X[row_ix, 0], X[row_ix, 1], label=str(label))
     plt.legend()
     plt.show()
+    plt.clf()
 
+def plot_classification_report(clf, X_test, y_test):
+    plt.close('all')
+    plt.clf()
+    classes = list(np.unique(y_test))
+    visualizer = ClassificationReport(clf, classes=classes, support=True, is_fitted='true')
+    #visualizer.fit(X_train, y_train)  # Fit the visualizer and the model
+    visualizer.score(X_test, y_test)# Evaluate the model on the test data
+    save_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v3'
+    save_path= path.join(save_dir,name+"_raport.png")
+    visualizer.show()
+
+    pass
 
 def plot_confucion_matrix(y_test, predictions, score, path_to_save, name):
     cm = metrics.confusion_matrix(y_test, predictions)
@@ -99,12 +114,14 @@ def plot_confucion_matrix(y_test, predictions, score, path_to_save, name):
     plt.savefig(path_to_save + '.png')
 
 
-def plot_matrix(clf, X_test, y_test, save_path, name):
-    predictions, accurancy = get_accurancy(clf_over, X_test, y_test)
-    labels = ['BC 1', 'BC 2', 'BC 3', 'Interwały', 'BC 1 + RT', 'Rozgrzewka']
 
+def plot_matrix(clf, X_test, y_test, save_path, name):
+    predictions, accurany = get_accurancy(clf, X_test, y_test)
+    labels = ['BC 1', 'BC 2', 'BC 3', 'Interwały', 'BC 1 + RT', 'Rozgrzewka']
+    plt.grid(False)
     plot_confusion_matrix(clf, X_test, y_test, normalize='true')
-    plt.title(name + "\nDokładność:{:.3f}".format(accurancy))
+    plt.grid(False)
+    plt.title(name + "\nDokładność:{:.3f}".format(accurany))
     plt.ylabel('Prawdziwy typ');
     plt.xticks(rotation=45)
     plt.xlabel('Przewidziany typ');
@@ -152,7 +169,8 @@ def tree_ploter(X, y):
     clf.fit(X, y)
     _ = tree.plot_tree(clf, feature_names=features_name, class_names=labels_names, filled=True)
     plt.savefig('/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/tree_jakub_szymon_medium.png')
-
+    plt.clf()
+    plt.close(fig)
 
 def prepare_data(file):
     X, y = read_data(file, {'Type': ['RT', '7'], })
@@ -160,10 +178,12 @@ def prepare_data(file):
     return X, y
 
 
-def precision_recall_fscore_support_extend(y_true, y_pred, name):
+def precision_recall_fscore_support_extend(clf,y_true, y_pred, name):
+
     save_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots'
     file_to_save = path.join(save_dir, name + '_scores.txt')
     labels = list(np.unique(y_true))
+
     precision, recall, fscore, support = precision_recall_fscore_support(y_true, y_pred, labels=labels)
     labels = sorted(labels)
     with open(file_to_save, 'w+') as fp:
@@ -181,9 +201,10 @@ if __name__ == '__main__':
     run_classificators = True
     oversample_data = True
     undersample_data = False
-    plot_tree = True
-    plot_matrix_decision = False
+    plot_tree = False
+    plot_matrix_decision = True
     create_scores = True
+    plot_report = True
     steps = []
     if undersample_data:
         steps.append(('u', RandomUnderSampler(sampling_strategy={0: 100})))
@@ -229,7 +250,10 @@ if __name__ == '__main__':
             # plot_matrix(clf, X_test, y_test,
             #           path.join(garmin_dir, name), name)
             if create_scores:
-                precision_recall_fscore_support_extend(y_test_over, predictions_over, name)
+                precision_recall_fscore_support_extend(clf_over,y_test_over, predictions_over,name)
+
+            if plot_report:
+                plot_classification_report(clf, X_test_over, y_test_over)
 
             delta = accurancy_over - accurancy
             df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
