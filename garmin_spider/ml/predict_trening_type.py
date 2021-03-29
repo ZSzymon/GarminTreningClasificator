@@ -41,12 +41,12 @@ training_types = {
 }
 
 classifiers = {
-    "SGD Classifier": SGDClassifier(),
+    #"SGD Classifier": SGDClassifier(),
     'Logistic Regression': LogisticRegression(random_state=0, max_iter=1000),
-    "Decision Tree Classifier": DecisionTreeClassifier(max_depth=7),
-    "Random Forest Classifier": RandomForestClassifier(max_depth=7, n_estimators=10, max_features=4),
-    "Linear SVM": SVC(kernel="linear", C=4),
-    "RBF SVM": SVC(gamma=.25, C=1),
+    #"Decision Tree Classifier": DecisionTreeClassifier(max_depth=7),
+    #"Random Forest Classifier": RandomForestClassifier(max_depth=7, n_estimators=10, max_features=4),
+    #"Linear SVM": SVC(kernel="linear", C=4),
+    #"RBF SVM": SVC(gamma=.25, C=1),
     "Naive Bayes": GaussianNB(),
 }
 
@@ -126,6 +126,7 @@ def plot_matrix(clf, X_test, y_test, save_path, name):
     plt.ylabel('Prawdziwy typ');
     plt.xticks(rotation=45)
     plt.xlabel('Przewidziany typ');
+
     plt.tight_layout()
     plt.savefig(save_path)
     # plt.show()
