@@ -89,15 +89,16 @@ def plot_dataset(X, y):
     plt.show()
     plt.clf()
 
-def plot_classification_report(clf, X_test, y_test):
+def plot_classification_report(clf, X_test, y_test,name):
     plt.close('all')
     plt.clf()
     classes = list(np.unique(y_test))
     visualizer = ClassificationReport(clf, classes=classes, support=True, is_fitted='true')
-    #visualizer.fit(X_train, y_train)  # Fit the visualizer and the model
+
     visualizer.score(X_test, y_test)# Evaluate the model on the test data
     save_dir = '/home/zywko/PycharmProjects/BA_Code/resources/garmin_plots/v3'
     save_path= path.join(save_dir,name+"_raport.png")
+    visualizer.set_title(name)
     visualizer.show()
 
     pass
@@ -253,7 +254,7 @@ if __name__ == '__main__':
                 precision_recall_fscore_support_extend(clf_over,y_test_over, predictions_over,name)
 
             if plot_report:
-                plot_classification_report(clf, X_test_over, y_test_over)
+                plot_classification_report(clf, X_test_over, y_test_over,name)
 
             delta = accurancy_over - accurancy
             df.loc[i] = [name, accurancy, accurancy_over, delta, (delta / accurancy_over) * 100]
