@@ -1,2 +1,0 @@
-Counter({'BC 1': 268, 'Rozgrzewka': 82, 'BC 2': 59, 'Interwały': 39, 'BC 3': 32, 'BC 1 + RT': 16})
-Counter({'BC 1': 268, 'BC 2': 268, 'BC 3': 268, 'Interwały': 268, 'BC 1 + RT': 268, 'Rozgrzewka': 268})
